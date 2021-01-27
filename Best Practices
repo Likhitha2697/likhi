@@ -1,0 +1,207 @@
+JAVA :
+
+1) Code Cleanliness and Readability
+
+4 spaces for whitespace indentation
+No trailing whitespace
+No single line blocks, always use {  }
+Organize your imports (generally third party libraries first, then your own internal app imports, followed by constants definitions)
+Order your class members appropriately (statics variables first, then private variables, then constructor, then methods)
+
+
+2) Naming Standards
+
+Use meaningful names (ie. dont use r whensomething like httpResponse would be more meaningful)
+Use lowerCamelCase naming
+Use CAPITAL_UNDERSCORED_NAMING for constants
+Variables and methods should follow the same standards as described here
+
+
+3) Other
+
+Avoid empty catches (also avoid catches that log and rethrow)
+Avoid public class variables (use setters and getters)
+Wherever possible reference interfaces and not implementations (ie. a variable should be of type List<String> not ArrayList<String>)
+
+
+URI Creation Standards: 
+
+
+The following standards / best practices apply to the creation of the interface for a REST API.
+
+
+
+REST URIs define resources that are to be returned, created, modified, or deleted.  For example a customer’s data, a specific address for a customer, policy/contract information and so on.  What will be defined here are most of the accepted standards utilized in the industry.  When creating a REST API within AIG the definitions of URIs should adhere to the standards listed below.
+
+Versioning
+Versioning is important to add to the URI.  Initial endpoints will be created as the initial version but will be updated periodically.  If the updates to the APIs do not change the URI but simply accept or return more data then the version would stay the same.  However if fields are being removed or new fields are now required or the URI has to change even slightly then a new version should be used. Any change to the API contract or behavior that would be a “breaking change” to existing production consumers of the API, would require a new version.  This will allow for those using the existing versions to continue on until they can migrate to the latest version of the URI.   The versioning for the URI should have a lower case “v” and the number of the version (e.g  v1, v2, etc…).  It should be the beginning part of the URI after the hostname.
+
+For example the API endpoint in a microservice would be:
+
+/v1/policies
+
+/v2/policies
+
+Naming
+To describe the resources verbs should not be used.  The resources should be described using plural nouns and concrete names.  The reason this is done is a resource is not an action or something abstract but something more tangible and meaningful like customers, policies, funds, beneficiaries, etc...   It is important to choose simple resource names to make the API easy for the API consumer to utilize and understand.
+
+Examples of incorrect URIs that use verbs to describe the resource are as follows:
+
+/v1/getcustomerdata
+
+/v1/retrieve/customer/info
+
+/v1/updateuser
+
+The URIs should use nouns instead since the description is of the resource and not how it is being acted upon.  Examples of good URIs would be:
+
+/v1/customers
+
+/v1/agencies
+
+Collections
+Data can be retrieved in two ways, as collections or a single item within a collection.   For example, an application might want to get a list of all producers or individual producer. 
+
+If the entire list of producers is wanted, then the application would use the following URI:
+
+/v1/producers
+
+If the application just wants a specific producer then the URI would have some identifier for the producer and be retrieved that way.  For example:
+
+/v1/producers/12345
+
+The value following the /v1/producers/ would be a unique identifier to that producer so only the specific producer’s information would be retrieved.   It should be noted that the word preceding the identifier remains plural and is not changed to the singular /producer.  This is because the producer information is still part of the collection of producers and only limited by its unique identifier.  
+
+Now if a list of all of the addresses for a specific producer is needed, the URI would be:
+
+/v1/producers/12345/addresses
+
+Addresses is still plural since the producer could contain a list of addresses.  If a specific address is what is needed then the URI would look like:
+
+/v1/producers/12345/addresses/home1
+
+Where ‘home1’ is an identifier to a specific address within the list of addresses.
+
+In summary, for every resource in your API there should be 2 base URLs.  The first URI is for a collection.  The  second URI is for specific element in the collection. 
+
+For example:
+
+/v1/customers
+
+/v1/customers/12345
+
+HTTP Methods
+Unlike other APIs, REST APIs use the HTTP method to describe how the resource is getting accessed.  For example, we will not be calling a URI as follows:
+
+/v1/get/producers
+
+Which would suggest we are getting all of the producers. 
+
+The method describes the action which will be taken on the resource and does not need to be added to the URI.  In the above example the GET method would be used for the API resource "producers" and not include the word ‘get’ in the URI path.  Instead when an application is calling the API it would call the GET method on the following resource:
+
+/v1/producers/12345
+
+If an application wanted to delete the specific producer then the DELETE method would be used on the same resource:
+
+/v1/producers/12345
+
+The URIs are identical it is simply the method that describes the action taken upon the resource
+
+
+
+HTTP methods are defined as follows:
+
+GET – Retrieves the information for a given resource specified by the URI
+
+DELETE – Removes the information for a given resource specified by the URI
+
+POST – Inserts the information for a given resource specified by the URI
+
+PUT – Updates the information for a given resource specified by the URI
+
+
+
+Exception:
+
+There are instances where data is to be retrieved but in order to do so multiple criteria may be used.   The max limit for a URI is 2,083 characters and fitting all of the criteria in the URI may exceed the limit.  In these cases a POST method may be used in place of a GET method.  If for example the application needs to get a list of policies but there may be multiple polices that are to be retrieved.  The URI could be as follows:
+
+(GET)    /v1/policies/12345,12346,12347
+
+As the list grows the URI gets unwieldy.  Or multiple different parameters are used to get the information.  In that case the GET method would be replaced by the POST method on the URI
+
+(POST)   /v1/policysearch
+
+The application would then also have to send a payload to the endpoint and list out the information that would be used to retrieve back the information for all of the polices to be retrieved.  The payload might look something like:
+
+{ “policies”:[“12345”, “12346”, “12347”, “12348”, “12349”]}
+
+NOTE:  For REST request and response payloads, JSON is the defacto standard representation
+
+Case
+All parts of the URI should remain lower case.  There should not be a mixture of upper and lower case.  For example a part of the URI would not use /Customers it would instead be /customers.  If there is some need to use multiple words within the forward slashes then the words would maintain the lower case structure.   For example /v1/currentusers.  Care should be taken to keep the names simple and not to try and append too many words together (/v1/thisisthenameofmyresources) as it would complicate the understanding of the URI.  
+
+Hierarchy
+URIs are not always a single noun like /customers.   Many times there is data that is to be retrieved for a customer and not just their specific customer data.  The hierarchy is dependent on how the data will be retrieved.
+
+For example an application might want to get a list of all of the policies for a specific customer.  If that is the case then the application would call the customer API with the hierarchical structure:
+
+/v1/customers/1234/policies
+
+In another instance an application may need to call the policy API to get a list of customers for a given policy.  If so then the URI being called might look like the following:
+
+/v1/policies/A123/customers
+
+Great care should be taken in how the hierarchy of a URI should be made.   In the case above the /policies/A123/customers information would be created to get back summary information about the customers associated to policy A123.  Each customer in this list should include an identifier. Then if the application wanted to display more data than just the customers summary information it would take the identifier and call the customer API endpoint (/customers/1234) to retrieve the detailed information.   The policy API should not add a /policies/A123/customers/1234 endpoint to get the same detailed data the customer API would return.  Each API should have endpoints specific to that APIs function.  The customer should have all the information to get back customer data and maybe summary information about the policies they own and the policy API should have only endpoints specific to policy information which may include summary information about the customers of that policy.
+
+Query Parameters
+Any of the data that is on the URI path is required data.  For example if an application wants information about a specific producer the identifier is required on the URI (/producers/1234). 
+
+There are times where an application will want to get information from a resource but will want to filter the information it retrieves so as not to get back all of the information.  The following URI will get back all of the information for a customer such as name, gender, phone numbers, addresses, etc… 
+
+/v1/customers/1234
+
+The different types of uses for query parameters are defined below.
+
+Partial Response:
+An application may only want to return back the name and gender of a customer.  This is called Partial Response or Field Selection.  Query parameters are used for just this purpose.  In the case where the name and gender are the only things wanted, a URI with a query parameter could be used.  An example of this might be:
+
+/v1/customers/1234?fields=name,gender
+
+Now instead of all of the data being sent back, just the name and gender are returned.
+
+Filtering:
+Another example of using query parameters is when an application wants information by a specific set of search or filter criteria.  If just the following URI is used
+
+/v1/customers
+
+A list of all of the customers is returned.  By adding query parameters, the application can reduce the amount of data returned.
+
+For example,  an application may want to get a list of customers from Hartford Connecticut.
+
+A URI could be created as follows:
+
+/v1/customers?city=Hartford&state=CT
+
+The information will be returned with all of the customers residing in Hartford Connecticut.
+
+Please note the above is an example of simple filtering.  For more complex searches it is encouraged to follow the POST pattern described previously within the HTTP section. 
+
+The rules described in the "case" section above will also apply to query parameters.  If there is a need to use multiple words then using all lower case will apply as well as keep the name of th equery parameter simple.
+
+
+
+Query parameters should NOT be mandatory.  Any query parameter included should be optional.  If the data is required to GET the resource then it should exist in the URI or in the case a POST is used to retrieve the information, then it should be in the body of the message sent to the URI.
+
+Other uses for Query Parameters:
+
+Sorting ----sort------A comma separated list of field(s) on which to sort
+
+Sorting---------sortdirection---------------The direction which the sort should be made. Values should be asc or desc
+
+Pagination----------limit----------------The number of records to return
+
+Pagination-----------	offset------------------	The starting point from which to retrieve the records
+
+
+
+
